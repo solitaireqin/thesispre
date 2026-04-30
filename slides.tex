@@ -1,0 +1,217 @@
+\documentclass[UTF8, aspectratio=169]{ctexbeamer}
+
+% 主题设置
+\usetheme{Madrid} % 你可以尝试其他主题如 Warsaw, CambridgeUS, default
+\usecolortheme{default} % 可以尝试 seahorse, dolphin, beaver 等
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath, amsfonts, amssymb}
+\usepackage{caption}
+\usepackage{subcaption}
+
+% 包含必要的页码信息等
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{caption}[numbered] % 给 caption 编号
+
+% ====== PPT 信息设置 ======
+\title[VLA Models for Bimanual Manipulation]{Vision-Language-Action Models for Embodied Bimanual Manipulation in Industrial Environments}
+\subtitle{视觉语言动作模型在工业双臂操作中的应用}
+\author[Tian Qin]{答辩人：秦天 (Tian Qin)}
+\institute[EECS]{电子工程与计算机科学学院 (School of EECS)}
+\date{\today}
+
+\begin{document}
+
+% ====== 封面页 ======
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% ====== 目录页 ======
+\begin{frame}{目录 (Outline)}
+    \tableofcontents
+\end{frame}
+
+%------------------------------------------------
+\section{研究背景与动机}
+%------------------------------------------------
+\begin{frame}{研究背景与动机 (Background \& Motivation)}
+    \begin{itemize}
+        \item \textbf{具身智能的兴起 (Embodied AI)}：
+        \begin{itemize}
+            \item 视觉-语言-动作模型 (VLAs) 能够将高维的语义指令和视觉图像直接映射为底层空间动作，是目前具身智能的重要技术路线。
+        \end{itemize}
+        \vspace{0.3cm}
+        \item \textbf{当前面临的核心挑战}：
+        \begin{itemize}
+            \item \textbf{仿真与物理的鸿沟 (Sim-to-real Gap)}：传统方案过度依赖仿真预训练，导致真实物理部署成功率极低。
+            \item \textbf{双臂协同的指数级复杂度 (Bimanual Coordination)}：连续双臂操作在空间与时间上的同步要求极高。
+            \item \textbf{实时推理延迟 (Inference Latency)}：拥有数十亿参数的大模型在生成轨迹时由于算力瓶颈极易造成物理机械抖动。
+        \end{itemize}
+        \vspace{0.3cm}
+        \item \textbf{本论文的核心目标}：
+        \begin{itemize}
+            \item 完全绕过传统的仿真预训练，\textbf{直接在纯物理世界真实环境中}，构建并部署轻量级、端到端的双臂 VLA 操作流水线。
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+%------------------------------------------------
+\section{全管线系统硬件架构}
+%------------------------------------------------
+\begin{frame}{全管线系统硬件架构 (Hardware System Architecture)}
+    为了提供高质量、低延迟的数据支持，本研究搭建了高保真的双臂遥操作硬件与多视角传感矩阵：
+    
+    \begin{columns}
+        \begin{column}{0.4\textwidth}
+            \begin{itemize}
+                \item \textbf{执行机构}：14自由度 AgileX Piper 双臂机器人 + Pika 夹爪。
+                \item \textbf{多视角视觉阵列}：
+                \begin{itemize}
+                    \item 1个全局 Intel D435 相机。
+                    \item 2个主视角腕部 Intel D405 相机。
+                \end{itemize}
+                \item \textbf{操控系统}：Pika Data Suit 及定位基站构成，实现 50 Hz 零死角全要素数据采集。
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.6\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\textwidth]{../report/figures/3.1.png}
+                \caption{硬件与多相机系统拓扑图}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+%------------------------------------------------
+\section{核心任务：双臂物资接力与传递}
+%------------------------------------------------
+\begin{frame}{核心任务设计：双臂苹果传递 (Bimanual Apple Transfer)}
+    该任务需要\textbf{亚毫米级的空间精度验证}与严谨的\textbf{交接逻辑协同}。整个任务被划解为四个具有高度时间依赖性的逻辑阶段：
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.85\textwidth]{../report/figures/3.2.png}
+        \caption{双臂交接传递任务分镜序列图}
+    \end{figure}
+    
+    \begin{itemize}
+        \item (b) \textbf{阶段1}：左臂获取目标物体。
+        \item (c) \textbf{阶段2}：运送至中心区交接并让位，防止相撞。
+        \item (d) \textbf{阶段3}：右臂接力抓取，要求空间偏移量在毫米级别之内。
+        \item (e) \textbf{阶段4}：稳态运送至右侧目标靶位。
+    \end{itemize}
+\end{frame}
+
+%------------------------------------------------
+\section{算法模型与流匹配架构}
+%------------------------------------------------
+\begin{frame}{连续流匹配 VLA 基础模型 ($\pi_0$ \& $\pi_{0.5}$ Arch)}
+    \begin{columns}
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item 本研究选用了前沿的30亿规模参数的 $\pi_0$ 视觉-语言-动作流匹配 (Flow-Matching) 架构。
+                \item 测试并微调了升级版 $\pi_{0.5}$ 模型结构，融合了密集分位数归一化动作切块 (Action Chunking)。
+                \item \textbf{主时钟对齐}：使用严格的“全局时间主时钟（Temporal Master Clock）”解决高配摄像头与机械臂指令通道的频率乱序错位。
+                \item 最终收集利用了仅含 200 组真实且高保真的双臂成功演示进行了物理数据微调。
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\textwidth]{../report/figures/pi0.png}
+                \caption{$\pi_0$ 流匹配基础框架}
+            \end{figure}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+%------------------------------------------------
+\section{实验部署与端到端延迟控制}
+%------------------------------------------------
+\begin{frame}{异步部署与低延迟攻坚 (Low-Latency Asynchronous Deployment)}
+    针对 VLA 生成式轨迹推理在高频物理闭环存在的严重延迟瓶颈：
+    \begin{itemize}
+        \item 设计并应用了\textbf{异步客户端-服务器推理机制 (Asynchronous Client-Server Architecture)}。
+        \item 将沉重的视觉计算负荷与底层轨迹运行控制进行并行解耦。
+        \item 实验表明：此框架有效把闭环控制周期压缩在 \textbf{<50 ms}，消除了执行器机械发散与破坏性颤动。
+    \end{itemize}
+    
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.6\textwidth]{../report/figures/inference_latency.png}
+        \caption{模型推理与闭环执行的延迟时序图}
+    \end{figure}
+\end{frame}
+
+%------------------------------------------------
+\section{实验验证与结果分析}
+%------------------------------------------------
+\begin{frame}{实验结果分析：操作成功率 (Success Rate)}
+    \begin{figure}
+        \centering
+        \includegraphics[width=0.75\textwidth]{../report/figures/success_by_phase.png}
+        \caption{阶段性与整体闭环操作成功率对比 (100次采样)}
+    \end{figure}
+    
+    \begin{itemize}
+        \item \textbf{零样本失效}：依赖互联网混合数据预训练的模型($\pi_0$ Base, $\pi_{0.5}$ Base) 针对极高精度的非规则动作未能跨界。
+        \item \textbf{高效适应}：通过 200 条本土化数据 Fine-Tuning 后，$\pi_0$ FT 与 $\pi_{0.5}$ FT 的末端成功执行率实现了飞跃性突破。
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{实验结果分析：损失函数收敛与运动轨迹模拟}
+    \begin{columns}
+        \begin{column}{0.48\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.85\textwidth]{../report/figures/val_loss_curves.png}
+                \caption{模型验证集的收敛曲线 (L1 Flow Error)}
+            \end{figure}
+            网络在验证集分布下流误差被稳步驯服。
+        \end{column}
+        \begin{column}{0.48\textwidth}
+            \begin{figure}
+                \centering
+                \includegraphics[width=\textwidth]{../report/figures/offline_trajectory_pi05.png}
+                \caption{$\pi_{0.5}$ 模型动作轨迹拟合对比}
+            \end{figure}
+            橘色的 $\pi_{0.5}$ 分块预测几乎完美叠加覆盖了 14-DoF 全部真实物理域轨迹（蓝色）。
+        \end{column}
+    \end{columns}
+\end{frame}
+
+%------------------------------------------------
+\section{总结与展望}
+%------------------------------------------------
+\begin{frame}{总结与展望 (Conclusion \& Future Work)}
+    \begin{itemize}
+        \item \textbf{核心贡献总结}：
+        \begin{itemize}
+            \item 从零搭建、对齐、并部署了一套全链路不依赖仿真的双臂具身操作大模型应用框架。
+            \item 实验论证了本系统中的一个核心论点：\textbf{极小尺度但“绝对时序高频对齐”的实采数据，在精调流匹配类 VLA 模型时表现优于庞大的低质数据集}。
+            \item 通过引入异步并发机制搭配 $\pi_{0.5}$，跨越了长期困扰视觉操作端到端链路的“生成式推理高延迟”问题。
+        \end{itemize}
+        \vspace{0.4cm}
+        \item \textbf{未来研究展望}：
+        \begin{itemize}
+            \item \textbf{动态干扰}：探讨模型在执行交接过程中遭受人为随机外力干涉恢复情况。
+            \item \textbf{多模态融合}：未来在此纯视觉链路中引入触觉传感融合，缓解因相机视角遮挡导致的空间位域判断误差。
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+%------------------------------------------------
+\begin{frame}
+    \centering
+    \Huge
+    谢谢聆听！\\
+    \vspace{0.5cm}
+    \Large Thanks for your attention! \\
+    \vspace{1cm}
+    \large 恳请各位专家批评指正 (Q \& A)
+\end{frame}
+
+\end{document}
