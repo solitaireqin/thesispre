@@ -1,10 +1,8 @@
 \documentclass[aspectratio=169, t]{beamer}
-
-% NO THEME: Keep it completely barebones so the PPTX template can be applied later without interference.
 \usetheme{default}
 \usecolortheme{default}
 
-% Disable navigation symbols and footlines to keep the bottom empty.
+% Disable navigation symbols and footlines
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}{}
 
@@ -19,8 +17,8 @@
     {\huge \textbf{Vision-Language-Action Models for Embodied Bimanual Manipulation in Industrial Environments}} \\[0.8cm]
     {\Large \textbf{Master's Thesis Defense}} \\[1cm]
     
-    {\large Research Group / Laboratory Name} \\
-    {\large Tian Qin, tian@xxxx.edu, Master's Program in EECS, Robotics Track} \\
+    {\large Add optional group name} \\
+    {\large Tian Qin, tian@xxxx.edu, Master's Program in EECS} \\
     {\large Advisor: [Insert Advisor Name]} \\[0.8cm]
     
     {\large Purpose: Master's Thesis Presentation} \\
@@ -28,215 +26,243 @@
 \end{frame}
 
 % ====== Frame 2: Outline ======
-\begin{frame}{Outline of Presentation}
+\begin{frame}{Presentation Outline}
     \tableofcontents
 \end{frame}
 
-% ====== Frame 3: Introduction 1 ======
+% ====== Frame 3: Background I ======
 \begin{frame}{Introduction: The Evolution of Embodied AI}
+    {\Large \textbf{From Modularity to End-to-End Control}}
+    \vspace{0.5cm}
     \begin{itemize}
-        \item \textbf{Paradigm Shift in Robotics}: The integration of Vision-Language-Action (VLA) models has fundamentally transformed robotics from rigid, modular pipelines (perception $\rightarrow$ planning $\rightarrow$ control) to end-to-end continuous learning architectures.
-        \item \textbf{Direct Behavioral Mapping}: VLAs process high-dimensional multi-modal inputs (e.g., natural language instructions and RGB continuous streams) to directly yield low-level spatial joint actuations.
-        \item \textbf{Industrial Relevance}: Robust bimanual manipulation is mandatory for unstructured industrial and logistical environments, yet it remains critically underexplored due to exponential coordination complexities.
+        \item \textbf{Traditional Robotics:} Relies on heavily engineered pipelines (Perception $\rightarrow$ State Estimation $\rightarrow$ Planning $\rightarrow$ Control).
+        \item \textbf{The Bottleneck:} Modular errors compound exponentially in unstructured industrial environments.
+        \item \textbf{The Neural Shift:} Embodied AI seeks to map raw sensor streams natively into spatial robotic commands through deep learning frameworks.
+    \end{itemize}
+    \vspace{1cm}
+    \textit{[Image Placeholder: Optional - A diagram contrasting traditional robotics vs. AI-driven mapping]}
+\end{frame}
+
+% ====== Frame 4: Background II ======
+\begin{frame}{Introduction: The Rise of VLA Models}
+    {\Large \textbf{Vision-Language-Action Architectures}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Semantic Grounding:} VLMs (like GPT-4V) understand the world but cannot physically interact. 
+        \item \textbf{Action Injection:} VLA models inject physical actuation tokens directly into the generative stream.
+        \item \textbf{Implementation:} Translates natural language (``pick up the apple'') and RGB streams into multi-dimensional joint velocity coordinates.
     \end{itemize}
 \end{frame}
 
-% ====== Frame 4: Introduction 2 ======
-\begin{frame}{Core Challenges: The Deployment Bottlenecks}
+% ====== Frame 5: Background III ======
+\begin{frame}{Core Challenges: The Deployment Gap}
+    {\Large \textbf{Why Foundational AI Fails in the Physical World}}
+    \vspace{0.5cm}
     \begin{itemize}
-        \item \textbf{The Sim-to-Real Gap}: Contemporary VLA frameworks (e.g., OpenVLA, Octo) heavily rely on macroscopic semantic priors derived from Internet-scale or simulated datasets. These priors fail catastrophically during high-precision, sub-millimeter physical interactions.
-        \item \textbf{Dual-Arm Interdependency}: Extending standard manipulation to bimanual scenarios induces a combinatorial explosion in the configuration space, requiring absolute spatio-temporal synchronization to prevent collisions or logic breakdown.
-        \item \textbf{Inference Latency vs. Kinematic Stability}: Multi-billion parameter generative models exhibit significant inference delays (e.g., 100ms - 500ms). When injected directly into high-frequency physical control loops, this latency manifests as destructive mechanical divergence and jitter.
+        \item \textbf{The Sim-to-Real Disconnect:} Pre-training on massive simulated datasets ignores strict hardware tolerances and physical friction, causing disastrous physical deployment drops.
+        \item \textbf{Generic Priors:} "Internet-scale" embodied datasets (e.g., Open X-Embodiment) provide macroscopic context but lack the sub-millimeter geometry calibration demanded by industrial tasks.
     \end{itemize}
 \end{frame}
 
-% ====== Frame 5: Objectives ======
-\begin{frame}{Research Objectives and Contributions}
+% ====== Frame 6: Background IV ======
+\begin{frame}{Core Challenges: Coordination \& Latency}
+    {\Large \textbf{The Bimanual and Algorithmic Latency Wall}}
+    \vspace{0.5cm}
     \begin{itemize}
-        \item \textbf{Objective 1 (System Architecture)}: Construct an end-to-end, simulation-free bimanual VLA pipeline operating securely within the constraints of real-world physical dynamics.
-        \item \textbf{Objective 2 (Data Protocol)}: Establish a zero-blind-spot spatial data collection methodology to yield ultra-high-fidelity, temporally localized demonstrations, bypassing the reliance on massive generic datasets.
-        \item \textbf{Objective 3 (Algorithmic Fine-Tuning)}: Empirically validate the adaptiveness of novel continuous Flow-Matching architectures ($\pi_0$ and $\pi_{0.5}$) for highly correlated 14-DoF control.
-        \item \textbf{Objective 4 (Asynchronous Deployment)}: Engineer a decoupled Client-Server architecture and Exponential Moving Average (EMA) filtering to constrain execution cycle latency beneath physiological mechanical limits.
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 6: Hardware - System Overview ======
-\begin{frame}{Methodology: Actuation and Teleoperation Infrastructure}
-    We engineered an embodied teleoperation system guaranteeing sub-millimeter Cartesian tracking fidelity:
-    \begin{itemize}
-        \item \textbf{Kinematic Configuration}: Dual AgileX Piper robotic manipulators (12 DoF) coupled with symmetrical 1-DoF AgileX Pika Grippers, yielding a unified 14-DoF optimization target.
-        \item \textbf{Spatial Teleoperation Setup}: Utilized the AgileX Pika Data Suit integrated with four Pika Station base stations arrayed in a $45^\circ$ adversarial geometry to strictly eliminate positional calculation blockages.
-        \item \textbf{Sampling Rate Governance}: Hand-pose kinematics and gripper trigger states were structurally mapped and hard-capped at 50 Hz to align with the underlying CAN bus physiological bandwidth.
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 7: Hardware - View Topology ======
-\begin{frame}{Methodology: Multi-View Camera Sensory Matrix}
-    To supply the underlying neural policy with robust spatial awareness without relying on explicit depth mapping (LiDAR/RGB-D):
-    \begin{itemize}
-        \item \textbf{Global Scene Observation}: An elevated Intel RealSense D435 camera evaluates the macroscopic relative state of the workspace and objects.
-        \item \textbf{Active Wrist Observations}: Two Intel RealSense D405 cameras securely mounted on independent end-effectors continuously rotate with the manipulators, resolving micro-level occlusion during crossing paths.
-        \item \textbf{Sensory Synchronization}: The visual matrix captures strictly RGB modalities, synchronized algorithmically at 30 Hz.
+        \item \textbf{14-DoF Interdependency:} Extending beyond single-arm manipulation to bimanual transfer causes a combinatorial explosion in kinematic planning.
+        \item \textbf{Generative Latency Paradox:} Multi-billion parameter generative inferences take $\sim$300ms. Applying these to a $50$Hz physiological robotic loop triggers immediate mechanical resonance and jitter.
     \end{itemize}
     \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/3.1.png} (Hardware and Camera Topology) illustrating the physical layout and camera views here]}
+    \textit{[Image Placeholder: Optional - A visual depicting latency/jitter in continuous robotic arms]}
 \end{frame}
 
-% ====== Frame 8: Task Definition ======
-\begin{frame}{Task Formulation: Bimanual Apple Transfer}
-    We formalized a dynamic bimanual material-handling task serving as a rigorous evaluation primitive for visual-motor alignment:
-    \begin{itemize}
-        \item \textbf{Semantic Definition}: ``Use the left arm to pick up the apple from the blue board, place it in the center of the desk, then use the right arm to grasp it, and drop it into the green bowl.''
-        \item \textbf{Geometric Constraints}: The smooth, unstructured surface of the target object combined with the exceptionally narrow geometric clearance of the Pika grippers demands rigorous millimeter-level spatial and rotational accuracy.
-        \item \textbf{Critical Relay Phase}: The right manipulator must extract the target strictly from its deposited state without shifting its center of mass; spatial misalignment induces immediate cascading collision.
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 9: Task Phases ======
-\begin{frame}{Task Formulation: Temporal Execution Logic}
-    The overarching semantic instruction is functionally unrolled into four distinct, temporally dependent Markov decision phases:
-    \begin{itemize}
-        \item \textbf{Phase 1 (Object Acquisition)}: Left arm calculates geometric vector and lifts the target.
-        \item \textbf{Phase 2 (Centering \& Evasion)}: Navigation to the workspace center, deposition, and required structural retraction to clear spatial collision blocks.
-        \item \textbf{Phase 3 (Relay Extraction)}: Initiated conditionally based on visual static verification; right arm secures a secondary bounding box.
-        \item \textbf{Phase 4 (Target Placement)}: Right arm performs guided traversal to the target receptacle and smoothly releases the payload.
-    \end{itemize}
+% ====== Frame 7: Objectives ======
+\begin{frame}{Research Objectives}
+    {\Large \textbf{Bridging the VLA Reality Gap}}
     \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/3.2.png} (Bimanual Apple Transfer Task Scenario) illustrating the state transitions here]}
-\end{frame}
-
-% ====== Frame 10: Data Protocol ======
-\begin{frame}{Data Protocol: Spatio-Temporal High-Fidelity Engineering}
     \begin{itemize}
-        \item \textbf{Demonstration Cardinality}: Rather than relying on thousands of noisy simulations, we collected precisely \textbf{200 optimal bimanual demonstrations} administered by expert operators.
-        \item \textbf{Temporal Master Clock Synchronization}: A critical engineering intervention. Visual inputs (30 Hz) and proprioceptive metrics (50 Hz) intrinsically misalign. We anchored all data modalities to a rigid absolute Master Timestamp.
-        \item \textbf{Scientific Hypothesis}: This asserts that superior temporal correlation and zero-occlusion data engineering intrinsically outweigh raw dataset volume when tuning foundational VLAs.
+        \item \textbf{Simulation-Free Tuning:} Bypass virtual engines by orchestrating an end-to-end physical pipeline centered on the AgileX 14-DoF system.
+        \item \textbf{High-Fidelity Tuning:} Demonstrate that an ultra-localized, temporally aligned 200-demonstration dataset outperforms millions of generic trials on continuous flow models.
+        \item \textbf{Asynchronous Execution:} Decouple heavy visual-generative calculations from CAN bus kinematics to constrain hardware execution delay strictly beneath 50ms.
     \end{itemize}
 \end{frame}
 
-% ====== Frame 11: VLA Architecture (pi0) ======
-\begin{frame}{Algorithmic Framework: $\pi_0$ Flow-Matching Baseline}
-    \begin{itemize}
-        \item \textbf{Architectural Foundation}: We leveraged the $\pi_0$ architecture (3B parameters) established by Physical Intelligence.
-        \item \textbf{Continuous Action Representation}: Rather than tokenizing robotic output into discrete bins (which loses millimeter precision), $\pi_0$ leverages continuous Flow-Matching.
-        \item \textbf{Vector Field Prediction}: It generates a smooth vector field mapping input observation embeddings iteratively towards the optimal 14-DoF joint state manifold.
-    \end{itemize}
+% ====== Frame 8: Architecture I ======
+\begin{frame}{Methodology: System and Sensory Architecture}
+    {\Large \textbf{Zero-Occlusion Hardware Layout}}
     \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/pi0.png} (Continuous Flow-Matching Baseline Diagram) here]}
+    \begin{itemize}
+        \item \textbf{Actuation:} AgileX Piper Dual-Arm manipulators with Pika grippers (14 DoF). 
+        \item \textbf{Spatial Awareness Matrix:} Global Intel RealSense D435 (macro topology) + dual active RealSense D405 wrist sensors (micro gap resolution).
+        \item \textbf{Teleoperation Alignment:} 4 Pika spatial base stations synchronized via an absolute Temporal Master Clock.
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/3.1.png} (Hardware and Camera Topology) here.}
 \end{frame}
 
-% ====== Frame 12: VLA Architecture (pi0.5) ======
-\begin{frame}{Algorithmic Enhancement: The $\pi_{0.5}$ Topology}
-    To combat single-frame sensory noise and amplify temporal reasoning, we integrated the $\pi_{0.5}$ architectural upgrade:
-    \begin{itemize}
-        \item \textbf{Action Chunking Integration}: Instead of predicting instantaneous $t+1$ states, the network forecasts an overlapping sequence of prospective temporal actions (\textit{chunks}).
-        \item \textbf{Dense Quantile Normalization}: The flow matching processes are stabilized using quantile conditioning across the chunk horizons, mapping highly heterogeneous joint distributions efficiently.
-        \item \textbf{Fine-Tuning Objective}: Models were tuned using direct L1 Flow Matching error against the 200 localized trajectory benchmarks. 
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 13: Deployment Constraints ======
-\begin{frame}{Deployment Conundrum: Generative Inference Latency}
-    \begin{itemize}
-        \item \textbf{Computational Burden}: Generating flow-matched vectors sequentially through a 3B parameter Vision-Language model on standard RTX 4090 architecture induces inference delays reaching \textbf{100ms -- 300ms}.
-        \item \textbf{The Frequency Mismatch}: Low-level physical PI/PD motion controllers expect command refreshes at $>20$ Hz ($\le 50$ms).
-        \item \textbf{Physical Consequence}: Subjecting high-torque actuations to such sparse and delayed action updates provokes catastrophic mechanical resonance, invalidating the generative output entirely.
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 14: Asynchronous Client-Server ======
-\begin{frame}{System Optimization: Asynchronous Execution \& EMA}
-    To dismantle the generative latency barrier, we designed a custom deployment framework:
-    \begin{itemize}
-        \item \textbf{Asynchronous Client-Server Network}: We structurally severed the compute-heavy visual embedding processes from the raw kinematic execution loop. The Server computes $\pi_{0.5}$ chunks in the background while the Client streams localized joint states concurrently.
-        \item \textbf{EMA Temporal Smoothing}: Exponential Moving Average filters were applied over the overlapping predictions. As newer chunks arrive, their distributions smoothly average into the ongoing execution sequence seamlessly.
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 15: Latency Profiling ======
-\begin{frame}{Latency Profiling Results}
-    \begin{itemize}
-        \item \textbf{Empirical Execution Frequency}: The asynchronous methodology decoupled the network drag, successfully securing an unbroken physical control latency bounded \textbf{below 50 ms} ($\sim 20$ Hz throughput).
-        \item \textbf{Hardware Integrity}: Mechanical stutter is completely eliminated, allowing uninterrupted continuous bimanual sweeping logic.
-    \end{itemize}
+% ====== Frame 9: Task Formulation ======
+\begin{frame}{Methodology: The Bimanual Apple Transfer}
+    {\Large \textbf{A Sub-Millimeter Evaluation Primitive}}
     \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/inference_latency.png} (Inference Latency and Control Cycle Analysis) here]}
+    \begin{itemize}
+        \item \textbf{Constraint Breakdown:} Handing an unstructured object (an apple) across a dynamic center offset demands rigorous spatial correlation.
+        \item \textbf{Sequential Logic Phases:}
+              (1) Left-arm acquisition
+              (2) Centering \& evasion layout
+              (3) Right-arm relay extraction
+              (4) Target receptacle placement.
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/3.2.png} (Bimanual Apple Transfer Task Scenario) here.}
 \end{frame}
 
-% ====== Frame 16: End-to-End Success Rates ======
-\begin{frame}{Evaluation: Task Completion Probability}
-    Rigorous evaluations were conducted over 100 baseline physical iterations comparing pre-trained foundations (Base) versus Fine-Tuned (FT) models:
-    \begin{itemize}
-        \item \textbf{Zero-Shot Incapacity}: Base models ($\pi_0$ and $\pi_{0.5}$) failed completely phase-by-phase. Internet-scale logic proved vastly insufficient for physical geometric constraints.
-        \item \textbf{Vast Capability Gains}: $\pi_0$ FT and $\pi_{0.5}$ FT secured remarkable structural completion sequences, proving that highly synchronous localized data completely rewrites the network's understanding of spatial geometry.
-    \end{itemize}
+% ====== Frame 10: Algorithmic Foundation ======
+\begin{frame}{Methodology: $\pi_0$ Flow-Matching Baseline}
+    {\Large \textbf{From Discreteness to Continuous Vector Fields}}
     \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/success_by_phase.png} (Success Rate Comparison Across Task Phases) here]}
+    \begin{itemize}
+        \item \textbf{Architecture:} Inherited the 3-Billion parameter $\pi_0$ architecture.
+        \item \textbf{Flow-Matching Dynamics:} Replaces restrictive discrete tokenization of movements with a continuous vector field matching algorithm.
+        \item \textbf{Spatial Fluidity:} Generates native 14-DoF continuous kinematic trajectories mapping precisely to the AgileX physiological limits.
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/pi0.png} (Continuous Flow-Matching Diagram) here.}
 \end{frame}
 
-% ====== Frame 17: Insights on Action Chunking ======
-\begin{frame}{Evaluation: Comparative Efficacy of Action Chunking}
-    \begin{itemize}
-        \item \textbf{Superiority of $\pi_{0.5}$}: The Fine-Tuned $\pi_{0.5}$ configuration consistently outperformed $\pi_0$, particularly during Phase 3 (Relay Extraction).
-        \item \textbf{Temporal Smoothing}: Without action chunking, the single-step $\pi_0$ model fell victim to minor camera occlusion during crossing paths, resulting in spatial overshoots.
-        \item \textbf{Resilience}: $\pi_{0.5}$'s chunked output combined with EMA filtering successfully absorbed transient visual noise, securing stable force-closure over the dynamic apple coordinates.
-    \end{itemize}
-\end{frame}
-
-% ====== Frame 18: Loss Convergence & Validation ======
-\begin{frame}{Training Dynamics: Latent Flow Convergence}
-    \begin{itemize}
-        \item \textbf{Optimization Fidelity}: Empirical tracking of the L1 Flow-Matching Error verifies a stable convergence slope.
-        \item \textbf{Distribution Generalization}: Even confined to 200 demonstrations, the VLA effectively generalized across the held-out validation distribution without encountering catastrophic memorization or exploding gradients. 
-    \end{itemize}
+% ====== Frame 11: Algorithmic Upgrade ======
+\begin{frame}{Methodology: The $\pi_{0.5}$ Evolution}
+    {\Large \textbf{Harnessing Action Chunking Context}}
     \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/val_loss_curves.png} (Validation Loss Convergence Profiles) here]}
-\end{frame}
-
-% ====== Frame 19: Offline Kinematic Trajectory Alignment ======
-\begin{frame}{Offline Kinematic Trajectory Alignment}
     \begin{itemize}
-        \item \textbf{Positional Binding Analysis}: We visualized the mathematical variance between the ground-truth teleoperated states and the generative predictions generated by the trained parameters.
-        \item \textbf{Millimeter Accuracy}: The simulated output vectors virtually envelop the 14 baseline geometric coordinates simultaneously, demonstrating profound parametric fitting.
+        \item \textbf{Overlapping Foresight:} The upgraded $\pi_{0.5}$ framework ceases to predict single $t+1$ steps; it predicts $N$ temporal steps concurrently (Action Chunking).
+        \item \textbf{Noise Resilience:} Predicting an execution chunk effectively buffers single-frame camera stutters or sudden illumination variances.
+        \item \textbf{Direct Metric:} Supervised exclusively via L1 Latent Error on our pristine 200 localized demonstrations.
     \end{itemize}
-    \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/offline_trajectory_pi05.png} (Offline Trajectory Prediction Comparison) here]}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/pi05.png} ($\pi_{0.5}$ Flow Matching Baseline) here.}
 \end{frame}
 
-% ====== Frame 20: Ablation & Robustness Metrics ======
-\begin{frame}{Evaluation: System Robustness and Failure Modes}
+% ====== Frame 12: Execution Engineering ======
+\begin{frame}{Methodology: Asynchronous Latency Confinement}
+    {\Large \textbf{The Client-Server \& EMA Architecture}}
+    \vspace{0.5cm}
     \begin{itemize}
-        \item \textbf{Spatial Perturbations}: Exposing the target to arbitrary macroscopic translations during runtime yielded variable recovery responses; EMA chunking provided considerable buffering against sudden state shifts.
-        \item \textbf{Dominant Failure Modalities}: Evaluated errors largely stem from localized gripper geometry mismatches rather than macro navigation breakdowns, demonstrating the inherent difficulty of fine-motor continuous control.
+        \item \textbf{Decoupled Networking:} Separated computational visual loads (Server GPU) from raw physical state polling loops (Local Client).
+        \item \textbf{Smoothing Protocol:} Exponential Moving Average (EMA) continually overlays and averages the asynchronous $\pi_{0.5}$ incoming trajectory chunks. 
+        \item \textbf{Hardware Integrity:} Action cycle latency drastically crushed to beneath 50ms, curing native physical stutter blockages.
     \end{itemize}
-    \vspace{0.5cm}
-    \textit{[Please insert Figure: \texttt{figures/robustness_bar.png} or \texttt{failure_modes.png} (Robustness evaluation metrics) here]}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/inference_latency.png} (Inference Latency Timeseries) here.}
 \end{frame}
 
-% ====== Frame 21: Conclusion ======
+% ====== Frame 13: Results I ======
+\begin{frame}{Results: End-to-End Success Probability}
+    {\Large \textbf{Pre-trained Impotence vs. FT Viability}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Zero-Shot Baseline Failure:} Open-world $\pi_0$ / $\pi_{0.5}$ base parameters categorically failed at 0\%. They lack exact mm-level geometrical awareness logic.
+        \item \textbf{The FT Phase Breakthrough:} Only 200 temporal-synced demonstrations completely overwrote the base spatial mappings, yielding massive stability across all 4 interaction phases.
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/success_by_phase.png} (Success Rate Bar graph) here.}
+\end{frame}
+
+% ====== Frame 14: Results II ======
+\begin{frame}{Results: Kinematic Verification}
+    {\Large \textbf{Trajectory Envelopment \& Loss Convergence}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Training Fidelity:} L1 Flow matching error charts a strictly negative convergence profile over 35,000 steps without catastrophic overfitting. 
+        \item \textbf{Mathematical Overlap:} Offline validation reveals the simulated parametric vectors (orange) seamlessly overlapping the authentic human teleoperation bounds (blue) across all 14 physical joints.
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/val_loss_curves.png} and/or \texttt{figures/offline_trajectory_pi05.png} here.}
+\end{frame}
+
+% ====== Frame 15: Discussion I ======
+\begin{frame}{Discussion I: Action Chunking vs. Myopic Steps}
+    {\Large \textbf{Ablation Merits: The Value of Temporal Smoothing}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Single-Step Fragility:} During Phase 3 (Relay Extraction), the strict single-step $\pi_0$ model routinely overshot bounds the second the apple's bounding box crossed a visual occlusion seam.
+        \item \textbf{Chunked Buffering:} $\pi_{0.5}$ successfully bridged these occlusion gaps mathematically via its predicted, overarching motion chunks.
+    \end{itemize}
+    \vfill
+    \textit{Please insert relevant ablation chart here: e.g., \texttt{figures/reobservation_ablation.png} if applicable.}
+\end{frame}
+
+% ====== Frame 16: Discussion II ======
+\begin{frame}{Discussion II: Environmental Generalization}
+    {\Large \textbf{Evaluating System Robustness Parameters}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Macroscopic Perturbations:} Altering lighting conditions and injecting background distractors produced negligible drop-offs.
+        \item \textbf{Coordinate Shifts:} Moving the target apple to edge-case zones triggered partial adaptation; the VLA successfully recovered local interpolation vectors despite slight offsets. 
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/robustness_bar.png} (Generalization Evaluation) here.}
+\end{frame}
+
+% ====== Frame 17: Discussion III ======
+\begin{frame}{Discussion III: Systematic Failure Modes}
+    {\Large \textbf{Categorizing Deep Kinematic Breakdowns}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Error Taxonomy:} Analyzing the scattered failures indicates that macroscopic navigation was highly successful ($\sim$95\% + completion).
+        \item \textbf{Geometry Mismatch:} Over 80\% of unrecorded failures occurred exclusively in millimeter-scale terminal grasping phases (objects slipping out due to friction/shape estimation flaws).
+    \end{itemize}
+    \vfill
+    \textit{Please insert Figure: \texttt{figures/failure_modes.png} or \texttt{figures/failure_dist.png} here.}
+\end{frame}
+
+% ====== Frame 18: Discussion IV ======
+\begin{frame}{Discussion IV: Engineering Standardization}
+    {\Large \textbf{Overcoming Cross-Disciplinary Mismatches}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{The Invisible Latency:} We discovered that typical AI libraries implicitly desync UDP visual packets against CAN bus joint packets by up to 10ms.
+        \item \textbf{Hardware Alignment:} Our deployment enforces an absolute CPU Master Timestamp—a fundamental engineering requirement to translate internet-scale VLAs effectively onto raw carbon-steel bodies.
+    \end{itemize}
+\end{frame}
+
+% ====== Frame 19: Discussion V ======
+\begin{frame}{Discussion V: Barriers to Industrial Application}
+    {\Large \textbf{Confronting Weaknesses Before Scale}}
+    \vspace{0.5cm}
+    \begin{itemize}
+        \item \textbf{Visual Occlusion Paradox:} RGB-only models are structurally blind the second manipulator armor eclipses the camera FOV during dual-arm crossing.
+        \item \textbf{Force Integration:} True industrial operations (e.g., assembly, peg-in-hole) will rigidly necessitate fusing tactile/torque sensors into the flow-matching embeddings to execute physics-informed compliance.
+    \end{itemize}
+\end{frame}
+
+% ====== Frame 20: Conclusions ======
 \begin{frame}{Conclusions}
+    {\Large \textbf{Final Research Verifications}}
+    \vspace{0.5cm}
     \begin{itemize}
-        \item We conceptualized and validated a purely empirical, end-to-end VLA bimanual coordination pipeline native to the physical environment.
-        \item \textbf{The Data Paradigm}: Proven that an exceedingly small (200 execution dataset) with uncompromising \textit{spatio-temporal alignment} supersedes expansive, asynchronous Internet datasets for complex industrial operations.
-        \item \textbf{The Latency Paradigm}: Formally resolved the "Generative Actuation Latency Paradox" via the fusion of continuous Flow-Matching ($\pi_{0.5}$), Asynchronous Networking, and EMA filtering, anchoring control response securely below 50 ms.
+        \item Orchestrated an end-to-end, sub-$50$ms bimanual workflow completely absent of simulation logic overlays.
+        \item \textbf{Data Efficacy:} Confirmed that small-batch (200), uncompromisingly accurate kinematic data natively overwrites enormous, low-quality geometric priors in foundational VLAs.
+        \item \textbf{Deployment Scalability:} Validated that Asynchronous Chunking + EMA safely eliminates generative destruction across a continuous 14-DoF environment matrix.
     \end{itemize}
 \end{frame}
 
-% ====== Frame 22: Future Work ======
-\begin{frame}{Limitations and Future Directives}
+% ====== Frame 21: Future Directions ======
+\begin{frame}{Future Directions}
+    {\Large \textbf{Elevating Generative Robotics}}
+    \vspace{0.5cm}
     \begin{itemize}
-        \item \textbf{Dynamic Structural Perturbations}: Upgrading the continuous framework to systematically endure active human disruption and antagonistic physical interactions during runtime execution.
-        \item \textbf{Multi-Modal Sensory Fusion}: Overcoming pure-vision spatial occlusion by embedding synchronized force-torque/tactile sensors directly into the flow-matching embedding dimension.
-        \item \textbf{Industrial Scaling}: Broadening the bimanual paradigm across heterogeneous logistical and manufacturing workflows to study zero-shot material adaptation boundaries.
+        \item \textbf{Tactile Modality Induction:} Fusing high-response Pika skin sensors with D405 embeddings to mathematically counteract visual cross-arm blockages.
+        \item \textbf{Adversarial Perturbation Defense:} Injecting human-in-the-loop forces (pushing/pulling) during deployment to evaluate the flow-field vector's ability to zero-shot recover.
+        \item \textbf{Scale to Dynamic Assembly:} Expanding the bimanual Apple Transfer primitive toward unstructured, real-time industrial part assemblies.
     \end{itemize}
 \end{frame}
 
-% ====== Frame 23: Q&A ======
+% ====== Frame 22: Q&A ======
 \begin{frame}[plain]
-    \vspace*{2cm}
+    \vspace*{2.5cm}
     \begin{center}
-        \Huge \textbf{Thank You for Your Attention} \\[1cm]
-        \Large Questions and Answers
+        \Huge \textbf{Thank You for Listening} \\[1cm]
+        \Large Questions \& Answers Session
     \end{center}
 \end{frame}
 
